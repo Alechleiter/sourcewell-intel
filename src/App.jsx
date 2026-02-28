@@ -1038,19 +1038,39 @@ export default function SourcewellApp() {
                   </div>
                 )}
               </div>
-              <div style={{ background: t.bg1, border: `1px solid ${t.bg2}`, borderRadius: 12, overflow: "hidden" }}>
-                <DataTable t={t} isDark={isDark} isMobile={isMobile}
-                  columns={[
-                    { key: "zip", label: "Zip Code", mono: true },
-                    { key: "city", label: "City" },
-                    { key: "region", label: "Region" },
-                    { key: "count", label: "Total", align: "right", mono: true },
-                    { key: "gov", label: "Gov", align: "right", mono: true, color: t.govColor },
-                    { key: "edu", label: "Edu", align: "right", mono: true, color: t.eduColor },
-                  ]}
-                  data={search ? zipList.filter(z => z.zip.includes(search) || z.city.toLowerCase().includes(search.toLowerCase()) || z.region.toLowerCase().includes(search.toLowerCase())) : zipList}
-                  onRowClick={(row) => { setSearch(row.zip); setActiveTab("agencies"); }} />
-              </div>
+              {batchZipActive && parsedBatchZips && filtered.length > 0 ? (
+                <>
+                  <div style={{ marginBottom: 12 }}>
+                    <h3 style={{ fontSize: 16, fontWeight: 600, color: t.text0, margin: 0 }}>Batch Results</h3>
+                    <p style={{ fontSize: 12, color: t.text4, margin: "4px 0 0" }}>{filtered.length.toLocaleString()} agencies across {parsedBatchZips.size} zip code{parsedBatchZips.size !== 1 ? "s" : ""}</p>
+                  </div>
+                  <div style={{ background: t.bg1, border: `1px solid ${t.bg2}`, borderRadius: 12, overflow: "hidden" }}>
+                    <DataTable t={t} isDark={isDark} isMobile={isMobile}
+                      columns={[
+                        { key: "Organization Name", label: "Agency Name", maxWidth: 320 },
+                        { key: "Organization Type", label: "Type", render: (v) => <TypeBadge type={v} t={t} /> },
+                        { key: "Sub Type", label: "Sub Type", render: (v) => <SubTypePill subType={v} isDark={isDark} /> },
+                        { key: "City", label: "City" },
+                        { key: "Zip Code", label: "Zip", mono: true },
+                      ]}
+                      data={filtered} onRowClick={setDetail} savedSet={savedIds} onToggleSave={toggleSave} />
+                  </div>
+                </>
+              ) : (
+                <div style={{ background: t.bg1, border: `1px solid ${t.bg2}`, borderRadius: 12, overflow: "hidden" }}>
+                  <DataTable t={t} isDark={isDark} isMobile={isMobile}
+                    columns={[
+                      { key: "zip", label: "Zip Code", mono: true },
+                      { key: "city", label: "City" },
+                      { key: "region", label: "Region" },
+                      { key: "count", label: "Total", align: "right", mono: true },
+                      { key: "gov", label: "Gov", align: "right", mono: true, color: t.govColor },
+                      { key: "edu", label: "Edu", align: "right", mono: true, color: t.eduColor },
+                    ]}
+                    data={search ? zipList.filter(z => z.zip.includes(search) || z.city.toLowerCase().includes(search.toLowerCase()) || z.region.toLowerCase().includes(search.toLowerCase())) : zipList}
+                    onRowClick={(row) => { setSearch(row.zip); setActiveTab("agencies"); }} />
+                </div>
+              )}
             </div>
           )}
 
