@@ -924,12 +924,53 @@ export default function SourcewellApp() {
           {activeTab === "agencies" && (
             <div>
               <div style={{ marginBottom: 20 }}>
+                <h2 style={{ fontSize: 20, fontWeight: 700, color: t.text0, margin: 0 }}>Agencies</h2>
+                <p style={{ fontSize: 13, color: t.text4, margin: "4px 0 0" }}>{filtered.length.toLocaleString()} results</p>
+              </div>
+              <div style={{ background: t.bg1, border: `1px solid ${t.bg2}`, borderRadius: 12, overflow: "hidden" }}>
+                <DataTable t={t} isDark={isDark} isMobile={isMobile}
+                  columns={[
+                    { key: "Organization Name", label: "Agency Name", maxWidth: 320 },
+                    { key: "Organization Type", label: "Type", render: (v) => <TypeBadge type={v} t={t} /> },
+                    { key: "Sub Type", label: "Sub Type", render: (v) => <SubTypePill subType={v} isDark={isDark} /> },
+                    { key: "City", label: "City" },
+                    { key: "Zip Code", label: "Zip", mono: true },
+                  ]}
+                  data={filtered} onRowClick={setDetail} savedSet={savedIds} onToggleSave={toggleSave} />
+              </div>
+            </div>
+          )}
+
+          {/* CITIES */}
+          {activeTab === "cities" && (
+            <div>
+              <div style={{ marginBottom: 20 }}>
+                <h2 style={{ fontSize: 20, fontWeight: 700, color: t.text0, margin: 0 }}>Cities</h2>
+                <p style={{ fontSize: 13, color: t.text4, margin: "4px 0 0" }}>{cityList.length.toLocaleString()} cities with Sourcewell agencies</p>
+              </div>
+              <div style={{ background: t.bg1, border: `1px solid ${t.bg2}`, borderRadius: 12, overflow: "hidden" }}>
+                <DataTable t={t} isDark={isDark} isMobile={isMobile}
+                  columns={[
+                    { key: "name", label: "City" },
+                    { key: "count", label: "Total", align: "right", mono: true },
+                    { key: "gov", label: "Gov", align: "right", mono: true, color: t.govColor },
+                    { key: "edu", label: "Edu", align: "right", mono: true, color: t.eduColor },
+                    { key: "zipCount", label: "Zip Codes", align: "right", mono: true },
+                  ]}
+                  data={search ? cityList.filter(c => c.name.toLowerCase().includes(search.toLowerCase())) : cityList}
+                  onRowClick={(row) => { setSearch(row.name); setActiveTab("agencies"); }} />
+              </div>
+            </div>
+          )}
+
+          {/* ZIP CODES */}
+          {activeTab === "zips" && (
+            <div>
+              <div style={{ marginBottom: 20 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
                   <div>
-                    <h2 style={{ fontSize: 20, fontWeight: 700, color: t.text0, margin: 0 }}>Agencies</h2>
-                    <p style={{ fontSize: 13, color: t.text4, margin: "4px 0 0" }}>
-                      {filtered.length.toLocaleString()} results{parsedBatchZips ? ` across ${parsedBatchZips.size} zip code${parsedBatchZips.size !== 1 ? "s" : ""}` : ""}
-                    </p>
+                    <h2 style={{ fontSize: 20, fontWeight: 700, color: t.text0, margin: 0 }}>Zip Codes</h2>
+                    <p style={{ fontSize: 13, color: t.text4, margin: "4px 0 0" }}>{zipList.length.toLocaleString()} zip codes</p>
                   </div>
                   <div style={{ marginLeft: "auto" }}>
                     <button onClick={() => setBatchZipActive(!batchZipActive)} style={{
@@ -996,49 +1037,6 @@ export default function SourcewellApp() {
                     )}
                   </div>
                 )}
-              </div>
-              <div style={{ background: t.bg1, border: `1px solid ${t.bg2}`, borderRadius: 12, overflow: "hidden" }}>
-                <DataTable t={t} isDark={isDark} isMobile={isMobile}
-                  columns={[
-                    { key: "Organization Name", label: "Agency Name", maxWidth: 320 },
-                    { key: "Organization Type", label: "Type", render: (v) => <TypeBadge type={v} t={t} /> },
-                    { key: "Sub Type", label: "Sub Type", render: (v) => <SubTypePill subType={v} isDark={isDark} /> },
-                    { key: "City", label: "City" },
-                    { key: "Zip Code", label: "Zip", mono: true },
-                  ]}
-                  data={filtered} onRowClick={setDetail} savedSet={savedIds} onToggleSave={toggleSave} />
-              </div>
-            </div>
-          )}
-
-          {/* CITIES */}
-          {activeTab === "cities" && (
-            <div>
-              <div style={{ marginBottom: 20 }}>
-                <h2 style={{ fontSize: 20, fontWeight: 700, color: t.text0, margin: 0 }}>Cities</h2>
-                <p style={{ fontSize: 13, color: t.text4, margin: "4px 0 0" }}>{cityList.length.toLocaleString()} cities with Sourcewell agencies</p>
-              </div>
-              <div style={{ background: t.bg1, border: `1px solid ${t.bg2}`, borderRadius: 12, overflow: "hidden" }}>
-                <DataTable t={t} isDark={isDark} isMobile={isMobile}
-                  columns={[
-                    { key: "name", label: "City" },
-                    { key: "count", label: "Total", align: "right", mono: true },
-                    { key: "gov", label: "Gov", align: "right", mono: true, color: t.govColor },
-                    { key: "edu", label: "Edu", align: "right", mono: true, color: t.eduColor },
-                    { key: "zipCount", label: "Zip Codes", align: "right", mono: true },
-                  ]}
-                  data={search ? cityList.filter(c => c.name.toLowerCase().includes(search.toLowerCase())) : cityList}
-                  onRowClick={(row) => { setSearch(row.name); setActiveTab("agencies"); }} />
-              </div>
-            </div>
-          )}
-
-          {/* ZIP CODES */}
-          {activeTab === "zips" && (
-            <div>
-              <div style={{ marginBottom: 20 }}>
-                <h2 style={{ fontSize: 20, fontWeight: 700, color: t.text0, margin: 0 }}>Zip Codes</h2>
-                <p style={{ fontSize: 13, color: t.text4, margin: "4px 0 0" }}>{zipList.length.toLocaleString()} zip codes</p>
               </div>
               <div style={{ background: t.bg1, border: `1px solid ${t.bg2}`, borderRadius: 12, overflow: "hidden" }}>
                 <DataTable t={t} isDark={isDark} isMobile={isMobile}
