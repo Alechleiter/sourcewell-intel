@@ -519,6 +519,8 @@ export default function SourcewellApp() {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("All");
   const [subTypeFilter, setSubTypeFilter] = useState("All");
+  const [batchZips, setBatchZips] = useState("");
+  const [batchZipActive, setBatchZipActive] = useState(false);
   const [savedIds, setSavedIds] = useState(new Set());
   const [detail, setDetail] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -555,8 +557,17 @@ export default function SourcewellApp() {
     return { orgTypes, subTypes, cities, zips, regions };
   }, [data]);
 
+  const parsedBatchZips = useMemo(() => {
+    if (!batchZipActive || !batchZips.trim()) return null;
+    const zips = batchZips.split(/[\s,;\n\r\t]+/).map(z => z.trim()).filter(z => z.length > 0);
+    return zips.length > 0 ? new Set(zips) : null;
+  }, [batchZips, batchZipActive]);
+
   const filtered = useMemo(() => {
     let result = data;
+    if (parsedBatchZips) {
+      result = result.filter(r => parsedBatchZips.has(r["Zip Code"]));
+    }
     if (search) {
       const s = search.toLowerCase();
       result = result.filter(r =>
@@ -567,7 +578,7 @@ export default function SourcewellApp() {
     if (typeFilter !== "All") result = result.filter(r => r["Organization Type"] === typeFilter);
     if (subTypeFilter !== "All") result = result.filter(r => r["Sub Type"] === subTypeFilter);
     return result;
-  }, [data, search, typeFilter, subTypeFilter]);
+  }, [data, search, typeFilter, subTypeFilter, parsedBatchZips]);
 
   const toggleSave = (row) => {
     const id = row["Account Number"] || row._key;
@@ -913,8 +924,78 @@ export default function SourcewellApp() {
           {activeTab === "agencies" && (
             <div>
               <div style={{ marginBottom: 20 }}>
-                <h2 style={{ fontSize: 20, fontWeight: 700, color: t.text0, margin: 0 }}>Agencies</h2>
-                <p style={{ fontSize: 13, color: t.text4, margin: "4px 0 0" }}>{filtered.length.toLocaleString()} results</p>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                  <div>
+                    <h2 style={{ fontSize: 20, fontWeight: 700, color: t.text0, margin: 0 }}>Agencies</h2>
+                    <p style={{ fontSize: 13, color: t.text4, margin: "4px 0 0" }}>
+                      {filtered.length.toLocaleString()} results{parsedBatchZips ? ` across ${parsedBatchZips.size} zip code${parsedBatchZips.size !== 1 ? "s" : ""}` : ""}
+                    </p>
+                  </div>
+                  <div style={{ marginLeft: "auto" }}>
+                    <button onClick={() => setBatchZipActive(!batchZipActive)} style={{
+                      display: "flex", alignItems: "center", gap: 6, padding: "8px 14px",
+                      background: batchZipActive ? t.primaryBgStrong : t.bg2,
+                      border: `1px solid ${batchZipActive ? t.primary : t.bg3}`,
+                      borderRadius: 8, color: batchZipActive ? t.primaryLight : t.text3,
+                      cursor: "pointer", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap",
+                    }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                      </svg>
+                      {batchZipActive ? "Batch Zips Active" : "Batch Zip Lookup"}
+                    </button>
+                  </div>
+                </div>
+                {batchZipActive && (
+                  <div style={{
+                    marginTop: 14, padding: 16, background: t.bg1, border: `1px solid ${t.bg2}`,
+                    borderRadius: 10,
+                  }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                      <label style={{ fontSize: 12, fontWeight: 600, color: t.text2 }}>
+                        Paste zip codes (comma, space, or newline separated)
+                      </label>
+                      {batchZips.trim() && (
+                        <button onClick={() => setBatchZips("")} style={{
+                          background: "none", border: "none", color: t.text4, cursor: "pointer",
+                          fontSize: 11, fontWeight: 600, padding: "2px 6px",
+                        }}>Clear</button>
+                      )}
+                    </div>
+                    <textarea
+                      value={batchZips}
+                      onChange={(e) => setBatchZips(e.target.value)}
+                      placeholder={"93001, 93003, 93010, 93030\n90210, 90211, 90212"}
+                      rows={3}
+                      style={{
+                        width: "100%", padding: "10px 12px", background: t.inputBg,
+                        border: `1px solid ${t.bg2}`, borderRadius: 8, color: t.text1,
+                        fontSize: 13, fontFamily: "'JetBrains Mono', monospace", outline: "none",
+                        resize: "vertical", boxSizing: "border-box",
+                        transition: "border-color 0.2s",
+                      }}
+                      onFocus={(e) => (e.target.style.borderColor = t.primary)}
+                      onBlur={(e) => (e.target.style.borderColor = t.bg2)}
+                    />
+                    {parsedBatchZips && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
+                        <span style={{ fontSize: 11, color: t.text4 }}>
+                          {parsedBatchZips.size} zip{parsedBatchZips.size !== 1 ? "s" : ""} entered — {filtered.length.toLocaleString()} agencies found
+                        </span>
+                        {filtered.length > 0 && (
+                          <button onClick={() => exportCSV(filtered, "sourcewell_batch_zip_export.csv")} style={{
+                            display: "flex", alignItems: "center", gap: 5, padding: "5px 10px", marginLeft: "auto",
+                            background: `linear-gradient(135deg, ${t.gradientA}, ${t.gradientB})`,
+                            border: "none", borderRadius: 6, color: "white",
+                            cursor: "pointer", fontSize: 11, fontWeight: 600,
+                          }}>
+                            <ExportIcon /> Export Batch Results
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
               <div style={{ background: t.bg1, border: `1px solid ${t.bg2}`, borderRadius: 12, overflow: "hidden" }}>
                 <DataTable t={t} isDark={isDark} isMobile={isMobile}
